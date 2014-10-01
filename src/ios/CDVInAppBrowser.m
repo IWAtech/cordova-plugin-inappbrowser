@@ -526,8 +526,7 @@
     self.toolbar.autoresizesSubviews = YES;
     self.toolbar.autoresizingMask = toolbarIsAtBottom ? (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin) : UIViewAutoresizingFlexibleWidth;
     //self.toolbar.barStyle = UIBarStyleBlackOpaque;
-    //UIColor *bgColor = [UIColor colorWithRed:223.0/255.0 green:231.0/255.0 blue:235.0/255.0 alpha:1.0];
-    UIColor *bgColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
+    UIColor *bgColor = [UIColor colorWithRed:223.0/255.0 green:231.0/255.0 blue:235.0/255.0 alpha:1.0];
     
     self.toolbar.translucent = NO;
     if ([self.toolbar respondsToSelector:@selector(setBarTintColor:)]) {
