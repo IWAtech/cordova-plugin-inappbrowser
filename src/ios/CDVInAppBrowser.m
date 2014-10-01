@@ -478,7 +478,7 @@
     webViewBounds.size.height -= _browserOptions.location ? FOOTER_HEIGHT : TOOLBAR_HEIGHT;
     self.webView = [[UIWebView alloc] initWithFrame:webViewBounds];
 
-    //self.webView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+    self.webView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 
     [self.view addSubview:self.webView];
     [self.view sendSubviewToBack:self.webView];
@@ -491,7 +491,7 @@
     self.webView.contentMode = UIViewContentModeScaleToFill;
     self.webView.multipleTouchEnabled = YES;
     self.webView.opaque = YES;
-    self.webView.scalesPageToFit = NO;
+    self.webView.scalesPageToFit = YES;
     self.webView.userInteractionEnabled = YES;
 
     self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
