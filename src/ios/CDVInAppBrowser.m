@@ -511,9 +511,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
 
-    /*self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
-    self.closeButton.enabled = YES;*/
-
     UIBarButtonItem* fixedSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     fixedSpaceButton.width = 5;
 
