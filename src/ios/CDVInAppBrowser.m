@@ -155,9 +155,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     [self.inAppBrowserViewController showLocationBar:browserOptions.location];
     [self.inAppBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
-    if (browserOptions.closebuttoncaption != nil) {
-        [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption];
-    }
+
     // Set Presentation Style
     UIModalPresentationStyle presentationStyle = UIModalPresentationFullScreen; // default
     if (browserOptions.presentationstyle != nil) {
@@ -513,8 +511,8 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
 
-    self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
-    self.closeButton.enabled = YES;
+    /*self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
+    self.closeButton.enabled = YES;*/
 
     UIBarButtonItem* fixedSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     fixedSpaceButton.width = 5;
@@ -574,11 +572,11 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     
     self.toolbarSubView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 50)];
     self.toolbarSubView.backgroundColor = UIColorFromRGB(0x333333);
-    self.backButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, TOOLBAR_HEIGHT, TOOLBAR_HEIGHT)];
-    [self.backButton setBackgroundImage:self.backImg forState:UIControlStateNormal];
-    [self.backButton addTarget:self action:@selector(goBack:) forControlEvents:UIControlEventTouchUpInside];
+    self.closeButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, TOOLBAR_HEIGHT, TOOLBAR_HEIGHT)];
+    [self.closeButton setBackgroundImage:self.backImg forState:UIControlStateNormal];
+    [self.closeButton addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
     
-    [self.toolbarSubView addSubview:self.backButton];
+    [self.toolbarSubView addSubview:self.closeButton];
     [self.toolbarSubView addSubview:self.addressLabel];
     
     [self.toolbar addSubview:self.toolbarSubView];
@@ -591,20 +589,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 - (void) setWebViewFrame : (CGRect) frame {
     NSLog(@"Setting the WebView's frame to %@", NSStringFromCGRect(frame));
     [self.webView setFrame:frame];
-}
-
-- (void)setCloseButtonTitle:(NSString*)title
-{
-    // the advantage of using UIBarButtonSystemItemDone is the system will localize it for you automatically
-    // but, if you want to set this yourself, knock yourself out (we can't set the title for a system Done button, so we have to create a new one)
-    self.closeButton = nil;
-    self.closeButton = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self action:@selector(close)];
-    self.closeButton.enabled = YES;
-    self.closeButton.tintColor = [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
-
-    NSMutableArray* items = [self.toolbar.items mutableCopy];
-    [items replaceObjectAtIndex:0 withObject:self.closeButton];
-    [self.toolbar setItems:items];
 }
 
 - (void)showLocationBar:(BOOL)show

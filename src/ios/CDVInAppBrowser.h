@@ -73,7 +73,7 @@
 }
 
 @property (nonatomic, strong) IBOutlet UIWebView* webView;
-@property (nonatomic, strong) IBOutlet UIBarButtonItem* closeButton;
+@property (nonatomic, strong) IBOutlet UIButton* closeButton;
 @property (nonatomic, strong) IBOutlet UILabel* addressLabel;
 @property (nonatomic, strong) IBOutlet UIButton* backButton;
 @property (nonatomic, strong) IBOutlet UIImage* backImg;
@@ -89,7 +89,6 @@
 - (void)navigateTo:(NSURL*)url;
 - (void)showLocationBar:(BOOL)show;
 - (void)showToolBar:(BOOL)show : (NSString *) toolbarPosition;
-- (void)setCloseButtonTitle:(NSString*)title;
 
 - (id)initWithUserAgent:(NSString*)userAgent prevUserAgent:(NSString*)prevUserAgent browserOptions: (CDVInAppBrowserOptions*) browserOptions;
 
