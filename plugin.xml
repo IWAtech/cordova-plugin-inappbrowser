@@ -19,14 +19,14 @@
 -->
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-           id="org.apache.cordova.inappbrowser"
-      version="0.5.3-dev">
+           id="com.updatemi.phonegap.inappbrowser"
+      version="0.1.0">
 
     <name>InAppBrowser</name>
-    <description>Cordova InAppBrowser Plugin</description>
+    <description>Forked Cordova InAppBrowser Plugin with special customization for Updatemi</description>
     <license>Apache 2.0</license>
-    <keywords>cordova,in,app,browser,inappbrowser</keywords>
-    <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-inappbrowser.git</repo>
+    <keywords>cordova,in,app,browser,inappbrowser,updatemi</keywords>
+    <repo>https://github.com/IWAtech/cordova-plugin-inappbrowser</repo>
     <issue>https://issues.apache.org/jira/browse/CB/component/12320641</issue>
 
     <engines>
@@ -123,6 +123,8 @@
         <header-file src="src/ios/CDVInAppBrowser.h" />
 	    <source-file src="src/ios/CDVInAppBrowser.m" />
 	    
+		<resource-file src="src/ios/Resources/ic_action_previous_item.png" />
+
 	    <framework src="CoreGraphics.framework" />
     </platform>
 
