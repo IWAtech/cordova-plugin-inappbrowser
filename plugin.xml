@@ -40,13 +40,13 @@
         </js-module>
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="InAppBrowser"> 
-                <param name="android-package" value="com.updatemi.InAppBrowser"/>
+                <param name="android-package" value="com.updatemi.inappbrowser.InAppBrowser"/>
             </feature>
         </config-file>
 
-        <source-file src="src/android/InAppBrowser.java" target-dir="com/updatemi/inappbrowser" />
-        <source-file src="src/android/InAppBrowserDialog.java" target-dir="com/updatemi/inappbrowser" />
-        <source-file src="src/android/InAppChromeClient.java" target-dir="com/updatemi/inappbrowser" />
+        <source-file src="src/android/InAppBrowser.java" target-dir="src/com/updatemi/inappbrowser" />
+        <source-file src="src/android/InAppBrowserDialog.java" target-dir="src/com/updatemi/inappbrowser" />
+        <source-file src="src/android/InAppChromeClient.java" target-dir="src/com/updatemi/inappbrowser" />
 
         <!--  drawable src/android/resources -->
         <!--<resource-file src="src/android/res/drawable-hdpi/ic_action_next_item.png" target="res/drawable-hdpi/ic_action_next_item.png" />-->
