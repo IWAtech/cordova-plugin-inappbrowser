@@ -27,7 +27,7 @@
     <license>Apache 2.0</license>
     <keywords>cordova,in,app,browser,inappbrowser,updatemi</keywords>
     <repo>https://github.com/IWAtech/cordova-plugin-inappbrowser</repo>
-    <issue>https://issues.apache.org/jira/browse/CB/component/12320641</issue>
+    <issue>http://www.updatemi.com</issue>
 
     <engines>
       <engine name="cordova" version=">=3.1.0" /><!-- Needs cordova/urlutil -->
@@ -40,29 +40,29 @@
         </js-module>
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="InAppBrowser"> 
-                <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser"/>
+                <param name="android-package" value="com.updatemi.InAppBrowser"/>
             </feature>
         </config-file>
 
-        <source-file src="src/android/InAppBrowser.java" target-dir="src/org/apache/cordova/inappbrowser" />
-        <source-file src="src/android/InAppBrowserDialog.java" target-dir="src/org/apache/cordova/inappbrowser" />
-        <source-file src="src/android/InAppChromeClient.java" target-dir="src/org/apache/cordova/inappbrowser" />
+        <source-file src="src/android/InAppBrowser.java" target-dir="com/updatemi/inappbrowser" />
+        <source-file src="src/android/InAppBrowserDialog.java" target-dir="com/updatemi/inappbrowser" />
+        <source-file src="src/android/InAppChromeClient.java" target-dir="com/updatemi/inappbrowser" />
 
         <!--  drawable src/android/resources -->
-        <resource-file src="src/android/res/drawable-hdpi/ic_action_next_item.png" target="res/drawable-hdpi/ic_action_next_item.png" />
-        <resource-file src="src/android/res/drawable-mdpi/ic_action_next_item.png" target="res/drawable-mdpi/ic_action_next_item.png" />
-        <resource-file src="src/android/res/drawable-xhdpi/ic_action_next_item.png" target="res/drawable-xhdpi/ic_action_next_item.png" />
-        <resource-file src="src/android/res/drawable-xxhdpi/ic_action_next_item.png" target="res/drawable-xxhdpi/ic_action_next_item.png" />
+        <!--<resource-file src="src/android/res/drawable-hdpi/ic_action_next_item.png" target="res/drawable-hdpi/ic_action_next_item.png" />-->
+        <!--<resource-file src="src/android/res/drawable-mdpi/ic_action_next_item.png" target="res/drawable-mdpi/ic_action_next_item.png" />-->
+        <!--<resource-file src="src/android/res/drawable-xhdpi/ic_action_next_item.png" target="res/drawable-xhdpi/ic_action_next_item.png" />-->
+        <!--<resource-file src="src/android/res/drawable-xxhdpi/ic_action_next_item.png" target="res/drawable-xxhdpi/ic_action_next_item.png" />-->
 
         <resource-file src="src/android/res/drawable-hdpi/ic_action_previous_item.png" target="res/drawable-hdpi/ic_action_previous_item.png" />
         <resource-file src="src/android/res/drawable-mdpi/ic_action_previous_item.png" target="res/drawable-mdpi/ic_action_previous_item.png" />
         <resource-file src="src/android/res/drawable-xhdpi/ic_action_previous_item.png" target="res/drawable-xhdpi/ic_action_previous_item.png" />
         <resource-file src="src/android/res/drawable-xxhdpi/ic_action_previous_item.png" target="res/drawable-xxhdpi/ic_action_previous_item.png" />
 
-        <resource-file src="src/android/res/drawable-hdpi/ic_action_remove.png" target="res/drawable-hdpi/ic_action_remove.png" />
-        <resource-file src="src/android/res/drawable-mdpi/ic_action_remove.png" target="res/drawable-mdpi/ic_action_remove.png" />
-        <resource-file src="src/android/res/drawable-xhdpi/ic_action_remove.png" target="res/drawable-xhdpi/ic_action_remove.png" />
-        <resource-file src="src/android/res/drawable-xxhdpi/ic_action_remove.png" target="res/drawable-xxhdpi/ic_action_remove.png" />
+        <!--<resource-file src="src/android/res/drawable-hdpi/ic_action_remove.png" target="res/drawable-hdpi/ic_action_remove.png" />-->
+        <!--<resource-file src="src/android/res/drawable-mdpi/ic_action_remove.png" target="res/drawable-mdpi/ic_action_remove.png" />-->
+        <!--<resource-file src="src/android/res/drawable-xhdpi/ic_action_remove.png" target="res/drawable-xhdpi/ic_action_remove.png" />-->
+        <!--<resource-file src="src/android/res/drawable-xxhdpi/ic_action_remove.png" target="res/drawable-xxhdpi/ic_action_remove.png" />-->
 
     </platform>
 
