@@ -19,8 +19,8 @@
 -->
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-           id="com.updatemi.phonegap.inappbrowser"
-      version="0.2.0">
+           id="cordova-plugin-inappbrowser"
+      version="1.0.2-dev">
 
     <name>InAppBrowser</name>
     <description>Forked Cordova InAppBrowser Plugin with special customization for Updatemi</description>
