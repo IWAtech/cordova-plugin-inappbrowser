@@ -99,7 +99,7 @@ public class InAppBrowser extends CordovaPlugin {
      *
      * @param action        The action to execute.
      * @param args          JSONArry of arguments for the plugin.
-     * @param callbackId    The callback id used when calling back into JavaScript.
+     * @param callbackContext    The callback id used when calling back into JavaScript.
      * @return              A PluginResult object with a status and message.
      */
     public boolean execute(String action, CordovaArgs args, final CallbackContext callbackContext) throws JSONException {
@@ -332,7 +332,6 @@ public class InAppBrowser extends CordovaPlugin {
      * Display a new browser with the specified URL.
      *
      * @param url           The url to load.
-     * @param usePhoneGap   Load url in PhoneGap webview
      * @return              "" if ok, or error message.
      */
     public String openExternal(String url) {
@@ -462,7 +461,7 @@ public class InAppBrowser extends CordovaPlugin {
      * Display a new browser with the specified URL.
      *
      * @param url           The url to load.
-     * @param jsonObject
+     * @param features
      */
     public String showWebPage(final String url, HashMap<String, Boolean> features) {
         // Determine if we should hide the location bar.
@@ -542,7 +541,7 @@ public class InAppBrowser extends CordovaPlugin {
                 actionButtonContainer.setLayoutParams(new RelativeLayout.LayoutParams(this.dpToPixels(50), LayoutParams.WRAP_CONTENT));
                 actionButtonContainer.setHorizontalGravity(Gravity.LEFT);
                 actionButtonContainer.setVerticalGravity(Gravity.CENTER_VERTICAL);
-                actionButtonContainer.setId(1);
+                //actionButtonContainer.setId(1);
 
                 // Back button
                 Button back = new Button(cordova.getActivity());
@@ -551,7 +550,7 @@ public class InAppBrowser extends CordovaPlugin {
                 back.setLayoutParams(backLayoutParams);
                 back.setContentDescription("Back Button");
                 back.setBackgroundColor(android.graphics.Color.parseColor("#cc0066"));
-                back.setId(2);
+                //back.setId(2);
                 /*
                 back.setText("<");
                 */
@@ -582,7 +581,7 @@ public class InAppBrowser extends CordovaPlugin {
                 edittext.setGravity(Gravity.CENTER_HORIZONTAL);
                 edittext.setBackgroundColor(android.graphics.Color.parseColor("#333333"));
                 edittext.setTextColor(android.graphics.Color.LTGRAY);
-                edittext.setId(4);
+                //edittext.setId(4);
                 edittext.setSingleLine(true);
                 edittext.setText(url);
                 edittext.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
@@ -609,7 +608,7 @@ public class InAppBrowser extends CordovaPlugin {
                 WebSettings settings = inAppWebView.getSettings();
                 settings.setJavaScriptEnabled(true);
                 settings.setJavaScriptCanOpenWindowsAutomatically(true);
-                settings.setBuiltInZoomControls(getShowZoomControls());
+                //settings.setBuiltInZoomControls(getShowZoomControls());
                 settings.setPluginState(android.webkit.WebSettings.PluginState.ON);
 
                 //Toggle whether this is enabled or not!
@@ -629,7 +628,7 @@ public class InAppBrowser extends CordovaPlugin {
                 }
 
                 inAppWebView.loadUrl(url);
-                inAppWebView.setId(6);
+                //inAppWebView.setId(6);
                 inAppWebView.getSettings().setLoadWithOverviewMode(true);
                 inAppWebView.getSettings().setUseWideViewPort(true);
                 inAppWebView.requestFocus();
@@ -708,8 +707,8 @@ public class InAppBrowser extends CordovaPlugin {
         /**
          * Constructor.
          *
-         * @param mContext
-         * @param edittext
+         * @param webView
+         * @param mEditText
          */
         public InAppBrowserClient(CordovaWebView webView, EditText mEditText) {
             this.webView = webView;
