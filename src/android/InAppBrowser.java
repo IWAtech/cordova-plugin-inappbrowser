@@ -538,14 +538,14 @@ public class InAppBrowser extends CordovaPlugin {
 
                 // Action Button Container layout
                 RelativeLayout actionButtonContainer = new RelativeLayout(cordova.getActivity());
-                actionButtonContainer.setLayoutParams(new RelativeLayout.LayoutParams(this.dpToPixels(50), LayoutParams.WRAP_CONTENT));
+                actionButtonContainer.setLayoutParams(new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
                 actionButtonContainer.setHorizontalGravity(Gravity.LEFT);
                 actionButtonContainer.setVerticalGravity(Gravity.CENTER_VERTICAL);
                 //actionButtonContainer.setId(1);
 
                 // Back button
                 Button back = new Button(cordova.getActivity());
-                RelativeLayout.LayoutParams backLayoutParams = new RelativeLayout.LayoutParams(this.dpToPixels(50), LayoutParams.MATCH_PARENT);
+                RelativeLayout.LayoutParams backLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
                 backLayoutParams.addRule(RelativeLayout.ALIGN_LEFT);
                 back.setLayoutParams(backLayoutParams);
                 back.setContentDescription("Back Button");
@@ -571,6 +571,28 @@ public class InAppBrowser extends CordovaPlugin {
 		              }
 	              });
 
+//                // Forward button
+//                Button forward = new Button(cordova.getActivity());
+//                RelativeLayout.LayoutParams forwardLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+//                forwardLayoutParams.addRule(RelativeLayout.RIGHT_OF, 2);
+//                forward.setLayoutParams(forwardLayoutParams);
+//                forward.setContentDescription("Forward Button");
+//                forward.setId(3);
+//                int fwdResId = activityRes.getIdentifier("ic_action_next_item", "drawable", cordova.getActivity().getPackageName());
+//                Drawable fwdIcon = activityRes.getDrawable(fwdResId);
+//                if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN)
+//                {
+//                    forward.setBackgroundDrawable(fwdIcon);
+//                }
+//                else
+//                {
+//                    forward.setBackground(fwdIcon);
+//                }
+//                forward.setOnClickListener(new View.OnClickListener() {
+//                    public void onClick(View v) {
+//                        goForward();
+//                    }
+//                });
 
                 // Edit Text Box
                 edittext = new EditText(cordova.getActivity());
@@ -598,6 +620,28 @@ public class InAppBrowser extends CordovaPlugin {
                     }
                 });
 
+//                // Close/Done button
+//                Button close = new Button(cordova.getActivity());
+//                RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+//                closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+//                close.setLayoutParams(closeLayoutParams);
+//                forward.setContentDescription("Close Button");
+//                close.setId(5);
+//                int closeResId = activityRes.getIdentifier("ic_action_remove", "drawable", cordova.getActivity().getPackageName());
+//                Drawable closeIcon = activityRes.getDrawable(closeResId);
+//                if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN)
+//                {
+//                    close.setBackgroundDrawable(closeIcon);
+//                }
+//                else
+//                {
+//                    close.setBackground(closeIcon);
+//                }
+//                close.setOnClickListener(new View.OnClickListener() {
+//                    public void onClick(View v) {
+//                        closeDialog();
+//                    }
+//                });
 
                 // WebView
                 inAppWebView = new WebView(cordova.getActivity());
@@ -636,11 +680,12 @@ public class InAppBrowser extends CordovaPlugin {
 
                 // Add the back and forward buttons to our action button container layout
                 actionButtonContainer.addView(back);
+                //actionButtonContainer.addView(forward);
 
                 // Add the views to our toolbar
                 toolbar.addView(actionButtonContainer);
                 toolbar.addView(edittext);
-
+                //toolbar.addView(close);
 
                 // Don't add the toolbar if its been disabled
                 //if (getShowLocationBar()) {
@@ -695,7 +740,6 @@ public class InAppBrowser extends CordovaPlugin {
             }
         }
     }
-    
 
     /**
      * The webview client receives notifications about appView
