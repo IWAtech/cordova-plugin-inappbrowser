@@ -28,14 +28,10 @@
 #define    kInAppBrowserToolbarBarPositionBottom @"bottom"
 #define    kInAppBrowserToolbarBarPositionTop @"top"
 
-#define    TOOLBAR_HEIGHT 50.0
+#define    TOOLBAR_HEIGHT 44.0
+#define    STATUSBAR_HEIGHT 20.0
 #define    LOCATIONBAR_HEIGHT 21.0
 #define    FOOTER_HEIGHT ((TOOLBAR_HEIGHT) + (LOCATIONBAR_HEIGHT))
-
-#define UIColorFromRGB(rgbValue) [UIColor \
-colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 \
-green:((float)((rgbValue & 0xFF00) >> 8))/255.0 \
-blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 #pragma mark CDVInAppBrowser
 
@@ -50,6 +46,11 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 {
     _previousStatusBarStyle = -1;
     _callbackIdPattern = nil;
+}
+
+- (id)settingForKey:(NSString*)key
+{
+    return [self.commandDelegate.settings objectForKey:[key lowercaseString]];
 }
 
 - (void)onReset
@@ -142,8 +143,16 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     }
 
     if (self.inAppBrowserViewController == nil) {
-        NSString* originalUA = [CDVUserAgentUtil originalUserAgent];
-        self.inAppBrowserViewController = [[CDVInAppBrowserViewController alloc] initWithUserAgent:originalUA prevUserAgent:[self.commandDelegate userAgent] browserOptions: browserOptions];
+        NSString* userAgent = [CDVUserAgentUtil originalUserAgent];
+        NSString* overrideUserAgent = [self settingForKey:@"OverrideUserAgent"];
+        NSString* appendUserAgent = [self settingForKey:@"AppendUserAgent"];
+        if(overrideUserAgent){
+            userAgent = overrideUserAgent;
+        }
+        if(appendUserAgent){
+            userAgent = [userAgent stringByAppendingString: appendUserAgent];
+        }
+        self.inAppBrowserViewController = [[CDVInAppBrowserViewController alloc] initWithUserAgent:userAgent prevUserAgent:[self.commandDelegate userAgent] browserOptions: browserOptions];
         self.inAppBrowserViewController.navigationDelegate = self;
 
         if ([self.viewController conformsToProtocol:@protocol(CDVScreenOrientationDelegate)]) {
@@ -153,7 +162,9 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     [self.inAppBrowserViewController showLocationBar:browserOptions.location];
     [self.inAppBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
-
+    if (browserOptions.closebuttoncaption != nil) {
+        [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption];
+    }
     // Set Presentation Style
     UIModalPresentationStyle presentationStyle = UIModalPresentationFullScreen; // default
     if (browserOptions.presentationstyle != nil) {
@@ -190,7 +201,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     }
 
     // UIWebView options
-    //self.inAppBrowserViewController.webView.scalesPageToFit = browserOptions.enableviewportscale;
+    self.inAppBrowserViewController.webView.scalesPageToFit = browserOptions.enableviewportscale;
     self.inAppBrowserViewController.webView.mediaPlaybackRequiresUserAction = browserOptions.mediaplaybackrequiresuseraction;
     self.inAppBrowserViewController.webView.allowsInlineMediaPlayback = browserOptions.allowinlinemediaplayback;
     if (IsAtLeastiOSVersion(@"6.0")) {
@@ -217,39 +228,74 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     _previousStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
 
-    CDVInAppBrowserNavigationController* nav = [[CDVInAppBrowserNavigationController alloc]
+    __block CDVInAppBrowserNavigationController* nav = [[CDVInAppBrowserNavigationController alloc]
                                    initWithRootViewController:self.inAppBrowserViewController];
     nav.orientationDelegate = self.inAppBrowserViewController;
     nav.navigationBarHidden = YES;
+    nav.modalPresentationStyle = self.inAppBrowserViewController.modalPresentationStyle;
+
+    __weak CDVInAppBrowser* weakSelf = self;
+
+    // Run later to avoid the "took a long time" log message.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (weakSelf.inAppBrowserViewController != nil) {
+            CGRect frame = [[UIScreen mainScreen] bounds];
+            UIWindow *tmpWindow = [[UIWindow alloc] initWithFrame:frame];
+            UIViewController *tmpController = [[UIViewController alloc] init];
+            [tmpWindow setRootViewController:tmpController];
+            [tmpWindow setWindowLevel:UIWindowLevelNormal];
+
+            [tmpWindow makeKeyAndVisible];
+            [tmpController presentViewController:nav animated:YES completion:nil];
+        }
+    });
+}
+
+- (void)hide:(CDVInvokedUrlCommand*)command
+{
+    if (self.inAppBrowserViewController == nil) {
+        NSLog(@"Tried to hide IAB after it was closed.");
+        return;
+
+
+    }
+    if (_previousStatusBarStyle == -1) {
+        NSLog(@"Tried to hide IAB while already hidden");
+        return;
+    }
+
+    _previousStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
+
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
         if (self.inAppBrowserViewController != nil) {
-            [self.viewController presentViewController:nav animated:YES completion:nil];
+            _previousStatusBarStyle = -1;
+            [self.viewController dismissViewControllerAnimated:YES completion:nil];
         }
     });
 }
 
 - (void)openInCordovaWebView:(NSURL*)url withOptions:(NSString*)options
 {
-    if ([self.commandDelegate URLIsWhitelisted:url]) {
-        NSURLRequest* request = [NSURLRequest requestWithURL:url];
+    NSURLRequest* request = [NSURLRequest requestWithURL:url];
+
 #ifdef __CORDOVA_4_0_0
-        [self.webViewEngine loadRequest:request];
+    // the webview engine itself will filter for this according to <allow-navigation> policy
+    // in config.xml for cordova-ios-4.0
+    [self.webViewEngine loadRequest:request];
 #else
+    if ([self.commandDelegate URLIsWhitelisted:url]) {
         [self.webView loadRequest:request];
-#endif
     } else { // this assumes the InAppBrowser can be excepted from the white-list
         [self openInInAppBrowser:url withOptions:options];
     }
+#endif
 }
 
 - (void)openInSystem:(NSURL*)url
 {
-    if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        [[UIApplication sharedApplication] openURL:url];
-    } else { // handle any custom schemes to plugins
-        [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPluginHandleOpenURLNotification object:url]];
-    }
+    [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPluginHandleOpenURLNotification object:url]];
+    [[UIApplication sharedApplication] openURL:url];
 }
 
 // This is a helper method for the inject{Script|Style}{Code|File} API calls, which
@@ -263,11 +309,8 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 - (void)injectDeferredObject:(NSString*)source withWrapper:(NSString*)jsWrapper
 {
-    if (!_injectedIframeBridge) {
-        _injectedIframeBridge = YES;
-        // Create an iframe bridge in the new document to communicate with the CDVInAppBrowserViewController
-        [self.inAppBrowserViewController.webView stringByEvaluatingJavaScriptFromString:@"(function(d){var e = _cdvIframeBridge = d.createElement('iframe');e.style.display='none';d.body.appendChild(e);})(document)"];
-    }
+    // Ensure an iframe bridge is created to communicate with the CDVInAppBrowserViewController
+    [self.inAppBrowserViewController.webView stringByEvaluatingJavaScriptFromString:@"(function(d){_cdvIframeBridge=d.getElementById('_cdvIframeBridge');if(!_cdvIframeBridge) {var e = _cdvIframeBridge = d.createElement('iframe');e.id='_cdvIframeBridge'; e.style.display='none';d.body.appendChild(e);}})(document)"];
 
     if (jsWrapper != nil) {
         NSData* jsonData = [NSJSONSerialization dataWithJSONObject:@[source] options:0 error:nil];
@@ -390,7 +433,14 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
             [self.commandDelegate sendPluginResult:pluginResult callbackId:scriptCallbackId];
             return NO;
         }
-    } else if ((self.callbackId != nil) && isTopLevelNavigation) {
+    }
+    //if is an app store link, let the system handle it, otherwise it fails to load it
+    else if ([[ url scheme] isEqualToString:@"itms-appss"] || [[ url scheme] isEqualToString:@"itms-apps"]) {
+        [theWebView stopLoading];
+        [self openInSystem:url];
+        return NO;
+    }
+    else if ((self.callbackId != nil) && isTopLevelNavigation) {
         // Send a loadstart event for each top-level navigation (includes redirects).
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstart", @"url":[url absoluteString]}];
@@ -404,7 +454,6 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 - (void)webViewDidStartLoad:(UIWebView*)theWebView
 {
-    _injectedIframeBridge = NO;
 }
 
 - (void)webViewDidFinishLoad:(UIWebView*)theWebView
@@ -447,7 +496,9 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     self.inAppBrowserViewController = nil;
 
     if (IsAtLeastiOSVersion(@"7.0")) {
-        [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle];
+        if (_previousStatusBarStyle != -1) {
+            [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle];
+        }
     }
 
     _previousStatusBarStyle = -1; // this value was reset before reapplying it. caused statusbar to stay black on ios7
@@ -473,11 +524,16 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 #else
         _webViewDelegate = [[CDVWebViewDelegate alloc] initWithDelegate:self];
 #endif
-        
+
         [self createViews];
     }
 
     return self;
+}
+
+// Prevent crashes on closing windows
+-(void)dealloc {
+   self.webView.delegate = nil;
 }
 
 - (void)createViews
@@ -486,6 +542,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     CGRect webViewBounds = self.view.bounds;
     BOOL toolbarIsAtBottom = ![_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop];
+    webViewBounds.size.height -= _browserOptions.location ? FOOTER_HEIGHT : TOOLBAR_HEIGHT;
     self.webView = [[UIWebView alloc] initWithFrame:webViewBounds];
 
     self.webView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
@@ -498,42 +555,43 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     self.webView.clearsContextBeforeDrawing = YES;
     self.webView.clipsToBounds = YES;
-    //self.webView.contentMode = UIViewContentModeScaleToFill;
+    self.webView.contentMode = UIViewContentModeScaleToFill;
     self.webView.multipleTouchEnabled = YES;
     self.webView.opaque = YES;
-    self.webView.scalesPageToFit = YES;
+    self.webView.scalesPageToFit = NO;
     self.webView.userInteractionEnabled = YES;
 
-    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
     self.spinner.alpha = 1.000;
     self.spinner.autoresizesSubviews = YES;
-    self.spinner.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+    self.spinner.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin);
     self.spinner.clearsContextBeforeDrawing = NO;
     self.spinner.clipsToBounds = NO;
     self.spinner.contentMode = UIViewContentModeScaleToFill;
-    self.spinner.frame = CGRectMake(454.0, 231.0, 20.0, 20.0);
-    self.spinner.hidden = YES;
+    self.spinner.frame = CGRectMake(CGRectGetMidX(self.webView.frame), CGRectGetMidY(self.webView.frame), 20.0, 20.0);
+    self.spinner.hidden = NO;
     self.spinner.hidesWhenStopped = YES;
     self.spinner.multipleTouchEnabled = NO;
     self.spinner.opaque = NO;
     self.spinner.userInteractionEnabled = NO;
     [self.spinner stopAnimating];
 
+    self.closeButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
+    self.closeButton.enabled = YES;
+
+    UIBarButtonItem* flexibleSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+
     UIBarButtonItem* fixedSpaceButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
-    fixedSpaceButton.width = 5;
+    fixedSpaceButton.width = 20;
 
     float toolbarY = toolbarIsAtBottom ? self.view.bounds.size.height - TOOLBAR_HEIGHT : 0.0;
     CGRect toolbarFrame = CGRectMake(0.0, toolbarY, self.view.bounds.size.width, TOOLBAR_HEIGHT);
 
-    self.navigationController.toolbar.translucent = NO;
-    
     self.toolbar = [[UIToolbar alloc] initWithFrame:toolbarFrame];
-    self.toolbar.barTintColor = UIColorFromRGB(0x333333);
-    self.toolbar.translucent = NO;
     self.toolbar.alpha = 1.000;
     self.toolbar.autoresizesSubviews = YES;
     self.toolbar.autoresizingMask = toolbarIsAtBottom ? (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin) : UIViewAutoresizingFlexibleWidth;
-    self.toolbar.barStyle = UIBarStyleDefault;
+    self.toolbar.barStyle = UIBarStyleBlackOpaque;
     self.toolbar.clearsContextBeforeDrawing = NO;
     self.toolbar.clipsToBounds = NO;
     self.toolbar.contentMode = UIViewContentModeScaleToFill;
@@ -542,9 +600,10 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     self.toolbar.opaque = NO;
     self.toolbar.userInteractionEnabled = YES;
 
-    CGFloat labelInset = 10.0;
+    CGFloat labelInset = 5.0;
+    float locationBarY = toolbarIsAtBottom ? self.view.bounds.size.height - FOOTER_HEIGHT : self.view.bounds.size.height - LOCATIONBAR_HEIGHT;
 
-    self.addressLabel = [[UILabel alloc] initWithFrame:CGRectMake(TOOLBAR_HEIGHT + labelInset, 0, self.view.bounds.size.width - TOOLBAR_HEIGHT - labelInset, TOOLBAR_HEIGHT)];
+    self.addressLabel = [[UILabel alloc] initWithFrame:CGRectMake(labelInset, locationBarY, self.view.bounds.size.width - labelInset, LOCATIONBAR_HEIGHT)];
     self.addressLabel.adjustsFontSizeToFitWidth = NO;
     self.addressLabel.alpha = 1.000;
     self.addressLabel.autoresizesSubviews = YES;
@@ -573,27 +632,41 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     self.addressLabel.textColor = [UIColor colorWithWhite:1.000 alpha:1.000];
     self.addressLabel.userInteractionEnabled = NO;
 
-    self.backImg = [[UIImage imageNamed:@"ic_action_previous_item.png"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-    
-    self.toolbarSubView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 50)];
-    self.toolbarSubView.backgroundColor = UIColorFromRGB(0x333333);
-    self.closeButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, TOOLBAR_HEIGHT, TOOLBAR_HEIGHT)];
-    [self.closeButton setBackgroundImage:self.backImg forState:UIControlStateNormal];
-    [self.closeButton addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
-    
-    [self.toolbarSubView addSubview:self.closeButton];
-    [self.toolbarSubView addSubview:self.addressLabel];
-    
-    [self.toolbar addSubview:self.toolbarSubView];
-    
+    NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
+    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    self.forwardButton.enabled = YES;
+    self.forwardButton.imageInsets = UIEdgeInsetsZero;
+
+    NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
+    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
+    self.backButton.enabled = YES;
+    self.backButton.imageInsets = UIEdgeInsetsZero;
+
+    [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
+
     self.view.backgroundColor = [UIColor grayColor];
     [self.view addSubview:self.toolbar];
+    [self.view addSubview:self.addressLabel];
     [self.view addSubview:self.spinner];
 }
 
 - (void) setWebViewFrame : (CGRect) frame {
     NSLog(@"Setting the WebView's frame to %@", NSStringFromCGRect(frame));
     [self.webView setFrame:frame];
+}
+
+- (void)setCloseButtonTitle:(NSString*)title
+{
+    // the advantage of using UIBarButtonSystemItemDone is the system will localize it for you automatically
+    // but, if you want to set this yourself, knock yourself out (we can't set the title for a system Done button, so we have to create a new one)
+    self.closeButton = nil;
+    self.closeButton = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self action:@selector(close)];
+    self.closeButton.enabled = YES;
+    self.closeButton.tintColor = [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
+
+    NSMutableArray* items = [self.toolbar.items mutableCopy];
+    [items replaceObjectAtIndex:0 withObject:self.closeButton];
+    [self.toolbar setItems:items];
 }
 
 - (void)showLocationBar:(BOOL)show
@@ -725,6 +798,10 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     return UIStatusBarStyleDefault;
 }
 
+- (BOOL)prefersStatusBarHidden {
+    return NO;
+}
+
 - (void)close
 {
     [CDVUserAgentUtil releaseLock:&_userAgentLockToken];
@@ -734,12 +811,14 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
         [self.navigationDelegate browserExit];
     }
 
+    __weak UIViewController* weakSelf = self;
+
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
-        if ([self respondsToSelector:@selector(presentingViewController)]) {
-            [[self presentingViewController] dismissViewControllerAnimated:YES completion:nil];
+        if ([weakSelf respondsToSelector:@selector(presentingViewController)]) {
+            [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:nil];
         } else {
-            [[self parentViewController] dismissViewControllerAnimated:YES completion:nil];
+            [[weakSelf parentViewController] dismissViewControllerAnimated:YES completion:nil];
         }
     });
 }
@@ -751,10 +830,11 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
     } else {
+        __weak CDVInAppBrowserViewController* weakSelf = self;
         [CDVUserAgentUtil acquireLock:^(NSInteger lockToken) {
             _userAgentLockToken = lockToken;
             [CDVUserAgentUtil setUserAgent:_userAgent lockToken:lockToken];
-            [self.webView loadRequest:request];
+            [weakSelf.webView loadRequest:request];
         }];
     }
 }
@@ -805,6 +885,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
     self.backButton.enabled = theWebView.canGoBack;
+    self.forwardButton.enabled = theWebView.canGoForward;
 
     [self.spinner startAnimating];
 
@@ -827,6 +908,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
     self.addressLabel.text = [self.currentURL absoluteString];
     self.backButton.enabled = theWebView.canGoBack;
+    self.forwardButton.enabled = theWebView.canGoForward;
 
     [self.spinner stopAnimating];
 
@@ -855,6 +937,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     NSLog(@"webView:didFailLoadWithError - %ld: %@", (long)error.code, [error localizedDescription]);
 
     self.backButton.enabled = theWebView.canGoBack;
+    self.forwardButton.enabled = theWebView.canGoForward;
     [self.spinner stopAnimating];
 
     self.addressLabel.text = NSLocalizedString(@"Load Error", nil);
@@ -901,7 +984,7 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
         self.location = YES;
         self.toolbar = YES;
         self.closebuttoncaption = nil;
-        self.toolbarposition = kInAppBrowserToolbarBarPositionTop;
+        self.toolbarposition = kInAppBrowserToolbarBarPositionBottom;
         self.clearcache = NO;
         self.clearsessioncache = NO;
 
@@ -958,19 +1041,38 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 @implementation CDVInAppBrowserNavigationController : UINavigationController
 
+- (void) dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
+    if ( self.presentedViewController) {
+        [super dismissViewControllerAnimated:flag completion:completion];
+    }
+}
+
 - (void) viewDidLoad {
 
-    CGRect frame = [UIApplication sharedApplication].statusBarFrame;
-
+    CGRect statusBarFrame = [self invertFrameIfNeeded:[UIApplication sharedApplication].statusBarFrame];
+    statusBarFrame.size.height = STATUSBAR_HEIGHT;
     // simplified from: http://stackoverflow.com/a/25669695/219684
 
-    UIToolbar* bgToolbar = [[UIToolbar alloc] initWithFrame:frame];
+    UIToolbar* bgToolbar = [[UIToolbar alloc] initWithFrame:statusBarFrame];
     bgToolbar.barStyle = UIBarStyleDefault;
+    [bgToolbar setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
     [self.view addSubview:bgToolbar];
 
     [super viewDidLoad];
 }
 
+- (CGRect) invertFrameIfNeeded:(CGRect)rect {
+    // We need to invert since on iOS 7 frames are always in Portrait context
+    if (!IsAtLeastiOSVersion(@"8.0")) {
+        if (UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation])) {
+            CGFloat temp = rect.size.width;
+            rect.size.width = rect.size.height;
+            rect.size.height = temp;
+        }
+        rect.origin = CGPointZero;
+    }
+    return rect;
+}
 
 #pragma mark CDVScreenOrientationDelegate
 

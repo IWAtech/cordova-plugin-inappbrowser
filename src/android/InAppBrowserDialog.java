@@ -21,7 +21,6 @@ package com.updatemi.inappbrowser;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
