@@ -650,7 +650,7 @@ public class InAppBrowser extends CordovaPlugin {
 
                 back.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
-                        goBack();
+                        closeDialog();
                     }
                 });
 
