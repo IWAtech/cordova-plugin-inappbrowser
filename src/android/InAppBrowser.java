@@ -688,7 +688,6 @@ public class InAppBrowser extends CordovaPlugin {
                 edittext.setId(Integer.valueOf(4));
                 edittext.setBackgroundColor(Color.DKGRAY);
                 edittext.setTextColor(Color.LTGRAY);
-                edittext.setId(4);
                 edittext.setSingleLine(true);
                 edittext.setText(url);
                 edittext.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
